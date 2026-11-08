@@ -16,9 +16,71 @@ import java.util.Scanner;
 public class MeteoTool {
 
     @Tool("""
-    Retourne true si la probabilité d'avoir de la pluie pour la ville dont on donne la latitude et la longitude
-    est importante durant une période de nbJours jours. La période commence nbJoursDebut jours après aujourd'hui.
-    Par exemple, si nbJoursDebut = 1 et nbJours = 2, la période de 2 jours commence demain (1 jour après aujourd'hui).
+    Retourne la latitude et la longitude d'une ville à partir de son nom.
+    Le nom de la ville doit être en anglais. Pour préciser le pays, on peut
+    utiliser par exemple "Rabat,Morocco".
+    """)
+    public double[] getCoordonnees(
+            @P(value = "Nom de la ville en anglais, avec le pays si nécessaire", name = "ville")
+            String ville) {
+        try {
+            String baseUrl = "https://geocoding-api.open-meteo.com/v1/search?name=";
+            String apiUri = baseUrl + ville;
+
+            HttpURLConnection connection =
+                    (HttpURLConnection) new URI(apiUri).toURL().openConnection();
+            connection.setRequestMethod("GET");
+
+            Scanner scanner = new Scanner(connection.getInputStream());
+            String response = scanner.useDelimiter("\\A").next();
+            scanner.close();
+
+            // Parser la réponse JSON qui a le format suivant :
+            // {
+            //   "results": [
+            //     {
+            //       "id": 3169070,
+            //       "name": "Rome",
+            //       "latitude": 41.89193,
+            //       "longitude": 12.51133
+            //     }
+            //   ]
+            // }
+            Gson gson = new Gson();
+            JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
+
+            // Récupérer le tableau "results"
+            if (jsonResponse.has("results")) {
+                JsonArray results = jsonResponse.getAsJsonArray("results");
+
+                if (!results.isEmpty()) {
+                    // Récupérer le premier élément du tableau results
+                    JsonObject premierResultat = results.get(0).getAsJsonObject();
+
+                    double latitude = premierResultat.get("latitude").getAsDouble();
+                    double longitude = premierResultat.get("longitude").getAsDouble();
+
+                    return new double[]{latitude, longitude};
+                }
+            }
+
+            throw new RuntimeException(
+                    "Aucune coordonnée trouvée pour la ville : " + ville);
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Erreur lors de la récupération des coordonnées pour la ville : "
+                            + ville, e);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Tool("""
+    Retourne true si la probabilité d'avoir de la pluie pour la ville dont on donne
+    la latitude et la longitude est importante durant une période de nbJours jours.
+    La période commence nbJoursDebut jours après aujourd'hui.
+    Par exemple, si nbJoursDebut = 1 et nbJours = 2, la période de 2 jours
+    commence demain (1 jour après aujourd'hui).
 
     Si nbJoursDebut = 0 et nbJours = 3, la période de 3 jours commence aujourd'hui.
     Retourne false sinon.
@@ -26,7 +88,8 @@ public class MeteoTool {
     public boolean isPluiePrevue(
             @P(value = "Latitude", name = "latitude") double latitude,
             @P(value = "Longitude", name = "longitude") double longitude,
-            @P(value = "Nombre de jours après aujourd'hui pour indiquer le début de la période", name = "nbJoursDebut") int nbJoursDebut,
+            @P(value = "Nombre de jours après aujourd'hui pour indiquer le début de la période",
+                    name = "nbJoursDebut") int nbJoursDebut,
             @P(value = "Nombre de jours de la période", name = "nbJours") int nbJours) {
 
         // Seuil au-delà duquel la probabilité d'avoir de la pluie est suffisante pour prendre un parapluie.
