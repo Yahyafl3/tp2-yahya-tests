@@ -2,7 +2,7 @@ package ma.yahya.tp2.tests;
 
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.embedding.onnx.bgesmallenv15.BgeSmallEnV15EmbeddingModel;
+//import dev.langchain4j.model.embedding.onnx.bgesmallenv15.BgeSmallEnV15EmbeddingModel;
 import dev.langchain4j.model.google.genai.GoogleGenAiEmbeddingModel;
 import dev.langchain4j.model.google.genai.GoogleGenAiEmbeddingModel.TaskTypeEnum;
 import dev.langchain4j.store.embedding.CosineSimilarity;
@@ -12,7 +12,7 @@ import java.time.Duration;
 public class Test4Embeddings {
     public static void main(String[] args) {
         // Création du modèle d'embeddings local
-        EmbeddingModel modeleEmbedding = new BgeSmallEnV15EmbeddingModel();
+        //EmbeddingModel modeleEmbedding = new BgeSmallEnV15EmbeddingModel();
 
         // Création du modèle d'embeddings Google
         String cle = System.getenv("GEMINI_KEY");
@@ -23,7 +23,7 @@ public class Test4Embeddings {
                 .taskType(TaskTypeEnum.SEMANTIC_SIMILARITY)
                 .timeout(Duration.ofSeconds(30))
                 .build();
-
+/*
         // Comparaison des six couples avec BGE
         System.out.println("=== BGE ===");
 
@@ -77,6 +77,8 @@ public class Test4Embeddings {
         comparer(modeleGoogle,
                 "She is baking bread.",
                 "The football match ended in a draw.");
+                      */
+
     }
 
     // Calcule et affiche la similarité entre deux phrases
